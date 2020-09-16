@@ -1,0 +1,25 @@
+---
+- name: Check epel status
+  shell: yum-config-manager epel | grep -q 'enabled = True'
+  changed_when: False
+  ignore_errors: True
+  register: epel_status
+
+- name: Install epel from amazon-linux-extras
+  command: amazon-linux-extras install epel -y
+  when:
+    - ansible_distribution == "Amazon"
+    - epel_status.rc != 0
+
+- name: Install epel-release
+  yum:
+    name: epel-release
+    state: present
+  when:
+    - ansible_distribution == "CentOS"
+    - epel_status.rc != 0
+
+- name: Enabled epel
+  command: yum-config-manager --enable epel
+  when:
+    - epel_status.rc != 0
